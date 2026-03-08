@@ -1,29 +1,34 @@
 server:
   port: 8081
 
-logging:
-  file:
-    name: logs/erp-system.log
-  logback:
-    rollingpolicy:
-      max-file-size: 50MB
-      max-history: 7
-
 spring:
   application:
     name: erp-system
+  
   datasource:
-    url: jdbc:mysql://localhost:3306/erp_jp_crossborder?useUnicode=true&characterEncoding=utf8&serverTimezone=Asia/Tokyo
-    username: erp_app
-    password: erp2026
     driver-class-name: com.mysql.cj.jdbc.Driver
+    url: jdbc:mysql://localhost:3306/erp_jp_crossborder?useUnicode=true&characterEncoding=utf8&useSSL=false&serverTimezone=Asia/Tokyo
+    username: root
+    password: ${DB_PASSWORD:root}
+  
+  redis:
+    host: localhost
+    port: 6379
+    password: ${REDIS_PASSWORD:}
+    database: 0
+    timeout: 5000ms
 
 mybatis-plus:
   mapper-locations: classpath*:/mapper/**/*.xml
+  type-aliases-package: com.erp.jp.system.entity
   configuration:
     map-underscore-to-camel-case: true
-  global-config:
-    db-config:
-      logic-delete-field: isDeleted
-      logic-delete-value: 1
-      logic-not-delete-value: 0
+    log-impl: org.apache.ibatis.logging.stdout.StdOutImpl
+
+jwt:
+  secret: ${JWT_SECRET:erp_japan_secret_key_2026}
+  expiration: 86400000  # 24 小时
+
+logging:
+  level:
+    com.erp.jp.system: DEBUG
