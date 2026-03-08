@@ -1,4 +1,4 @@
-package com.erp.jp.platform.rakuten;
+package com.erp.jp.platform.api.adapter.rakuten;
 
 import com.erp.jp.platform.api.*;
 import com.erp.jp.platform.api.auth.PlatformAuthContext;
@@ -20,7 +20,8 @@ import java.util.List;
 /**
  * 乐天市场（日本）平台适配器
  * 实现 PlatformAdapter 接口，通过 Spring 自动注册到 PlatformRegistry
- * 乐天 API 文档: https://webservice.rakuten.co.jp/
+ * 乐天 API 文档：https://webservice.rakuten.co.jp/
+ * [by Agent]
  */
 @Component
 @ConditionalOnProperty(name = "erp.platform.rakuten.enabled", havingValue = "true", matchIfMissing = true)
