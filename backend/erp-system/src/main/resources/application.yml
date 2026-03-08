@@ -15,7 +15,7 @@ spring:
   datasource:
     url: jdbc:mysql://localhost:3306/erp_jp_crossborder?useUnicode=true&characterEncoding=utf8&serverTimezone=Asia/Tokyo
     username: erp_app
-    password: Erp_Jp_2026!
+    password: erp2026
     driver-class-name: com.mysql.cj.jdbc.Driver
 
 mybatis-plus:

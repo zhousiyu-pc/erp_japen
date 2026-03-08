@@ -17,12 +17,12 @@ mysql -u root -p < 03_schema_store.sql
 mysql -u root -p < 04_schema_product.sql
 
 # 方式二：使用 erp_app 用户（需先执行 01）
-mysql -u erp_app -p'Erp_Jp_2026!' erp_jp_crossborder < 02_schema_system.sql
+mysql -u erp_app -p'erp2026' erp_jp_crossborder < 02_schema_system.sql
 ```
 
 ## 连接信息（开发环境）
 
 - 数据库: `erp_jp_crossborder`
 - 用户: `erp_app`
-- 密码: `Erp_Jp_2026!`（生产环境请修改）
+- 密码: `erp2026`（生产环境请修改）
 - 字符集: utf8mb4
