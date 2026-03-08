@@ -8,9 +8,11 @@ import com.erp.jp.store.service.StoreService;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Map;
 
 /**
  * 店铺管理 API
+ * [by Agent]
  */
 @RestController
 @RequestMapping("/api/v1/store")
@@ -54,6 +56,32 @@ public class StoreController {
     @GetMapping("/stores/{id}/auth-url")
     public R<String> getAuthUrl(@PathVariable Long id) {
         return storeService.getAuthUrl(id);
+    }
+
+    /**
+     * OAuth 回调处理
+     */
+    @GetMapping("/oauth/callback")
+    public R<Map<String, Object>> oauthCallback(
+            @RequestParam String code,
+            @RequestParam String state) {
+        return storeService.handleOAuthCallback(code, state);
+    }
+
+    /**
+     * 刷新店铺 Token
+     */
+    @PostMapping("/stores/{id}/refresh-token")
+    public R<Void> refreshToken(@PathVariable Long id) {
+        return storeService.refreshToken(id);
+    }
+
+    /**
+     * 验证店铺连接
+     */
+    @PostMapping("/stores/{id}/verify")
+    public R<Void> verifyStore(@PathVariable Long id) {
+        return storeService.verifyStore(id);
     }
 
     /**

@@ -185,4 +185,61 @@ public class StoreService {
                 new LambdaQueryWrapper<Warehouse>().eq(Warehouse::getTenantId, tenantId).eq(Warehouse::getStatus, 1));
         return R.ok(list);
     }
+
+    /**
+     * 处理 OAuth 回调
+     */
+    @Transactional(rollbackFor = Exception.class)
+    public R<Map<String, Object>> handleOAuthCallback(String code, String state) {
+        // TODO: 实现 OAuth 回调逻辑
+        // 1. 解析 state 获取店铺 ID
+        // 2. 使用 code 换取 access_token
+        // 3. 更新店铺授权信息
+        // 4. 触发首次数据同步
+        
+        return R.ok(Map.of("status", "success", "message", "授权成功"));
+    }
+
+    /**
+     * 刷新店铺 Token
+     */
+    @Transactional(rollbackFor = Exception.class)
+    public R<Void> refreshToken(Long storeId) {
+        if (storeId == null) {
+            return R.fail("店铺 ID 不能为空");
+        }
+        
+        StoreAuthInfo auth = storeAuthInfoMapper.selectOne(
+                new LambdaQueryWrapper<StoreAuthInfo>().eq(StoreAuthInfo::getStoreId, storeId));
+        
+        if (auth == null) {
+            return R.fail("店铺授权信息不存在");
+        }
+        
+        // TODO: 调用平台 API 刷新 Token
+        // auth.setAccessToken(newAccessToken);
+        // auth.setRefreshToken(newRefreshToken);
+        // auth.setTokenExpireTime(LocalDateTime.now().plusDays(30));
+        
+        return R.ok();
+    }
+
+    /**
+     * 验证店铺连接
+     */
+    public R<Void> verifyStore(Long storeId) {
+        if (storeId == null) {
+            return R.fail("店铺 ID 不能为空");
+        }
+        
+        StoreMaster store = storeMasterMapper.selectById(storeId);
+        if (store == null) {
+            return R.fail("店铺不存在");
+        }
+        
+        // TODO: 调用平台 API 验证连接
+        // 例如：调用 GetServiceStatus 接口
+        
+        return R.ok();
+    }
 }
