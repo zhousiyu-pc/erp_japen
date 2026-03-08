@@ -1,6 +1,9 @@
 package com.erp.jp.product.controller;
 
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
+import com.erp.jp.common.exception.ErrorCode;
+import com.erp.jp.common.exception.NotFoundException;
+import com.erp.jp.common.result.R;
 import com.erp.jp.product.dto.ProductSpuCreateRequest;
 import com.erp.jp.product.dto.ProductSpuResponse;
 import com.erp.jp.product.entity.ProductSpu;
@@ -24,60 +27,66 @@ public class ProductSpuController {
      * 创建商品 SPU
      */
     @PostMapping
-    public ProductSpuResponse create(@RequestBody @Validated ProductSpuCreateRequest request) {
+    public R<ProductSpuResponse> create(@RequestBody @Validated ProductSpuCreateRequest request) {
         ProductSpu spu = new ProductSpu();
         BeanUtils.copyProperties(request, spu);
         spuService.createSpu(spu);
         
         ProductSpuResponse response = new ProductSpuResponse();
         BeanUtils.copyProperties(spu, response);
-        return response;
+        return R.ok(response);
     }
     
     /**
      * 查询商品 SPU 详情
      */
     @GetMapping("/{spuId}")
-    public ProductSpuResponse getById(@PathVariable Long spuId) {
+    public R<ProductSpuResponse> getById(@PathVariable Long spuId) {
         ProductSpu spu = spuService.getById(spuId);
+        if (spu == null) {
+            throw new NotFoundException(ErrorCode.PRODUCT_NOT_FOUND, "商品不存在");
+        }
+        
         ProductSpuResponse response = new ProductSpuResponse();
         BeanUtils.copyProperties(spu, response);
-        return response;
+        return R.ok(response);
     }
     
     /**
      * 分页查询商品 SPU 列表
      */
     @GetMapping("/page")
-    public Page<ProductSpu> page(
+    public R<Page<ProductSpu>> page(
             @RequestParam(defaultValue = "1") Integer current,
             @RequestParam(defaultValue = "10") Integer size,
             @RequestParam(required = false) Integer status) {
         
         Page<ProductSpu> page = new Page<>(current, size);
         if (status != null) {
-            return spuService.lambdaQuery()
+            return R.ok(spuService.lambdaQuery()
                 .eq(ProductSpu::getStatus, status)
-                .page(page);
+                .page(page));
         }
-        return spuService.page(page);
+        return R.ok(spuService.page(page));
     }
     
     /**
      * 更新商品状态
      */
     @PutMapping("/{spuId}/status")
-    public boolean updateStatus(
+    public R<Void> updateStatus(
             @PathVariable Long spuId,
             @RequestParam Integer status) {
-        return spuService.updateStatus(spuId, status);
+        spuService.updateStatus(spuId, status);
+        return R.ok();
     }
     
     /**
      * 删除商品 SPU
      */
     @DeleteMapping("/{spuId}")
-    public boolean delete(@PathVariable Long spuId) {
-        return spuService.removeById(spuId);
+    public R<Void> delete(@PathVariable Long spuId) {
+        spuService.removeById(spuId);
+        return R.ok();
     }
 }
