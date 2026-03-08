@@ -1,0 +1,29 @@
+server:
+  port: 8083
+
+logging:
+  file:
+    name: logs/erp-store.log
+  logback:
+    rollingpolicy:
+      max-file-size: 50MB
+      max-history: 7
+
+spring:
+  application:
+    name: erp-store
+  datasource:
+    url: jdbc:mysql://localhost:3306/erp_jp_crossborder?useUnicode=true&characterEncoding=utf8&serverTimezone=Asia/Tokyo
+    username: erp_app
+    password: Erp_Jp_2026!
+    driver-class-name: com.mysql.cj.jdbc.Driver
+
+mybatis-plus:
+  mapper-locations: classpath*:/mapper/**/*.xml
+  configuration:
+    map-underscore-to-camel-case: true
+  global-config:
+    db-config:
+      logic-delete-field: isDeleted
+      logic-delete-value: 1
+      logic-not-delete-value: 0

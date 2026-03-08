@@ -1,0 +1,47 @@
+server:
+  port: 8080
+
+# 应用日志输出到文件
+logging:
+  file:
+    name: logs/erp-gateway.log
+  logback:
+    rollingpolicy:
+      max-file-size: 50MB
+      max-history: 7
+
+spring:
+  application:
+    name: erp-gateway
+  cloud:
+    gateway:
+      routes:
+        - id: erp-system
+          uri: http://localhost:8081
+          predicates:
+            - Path=/api/v1/system/**
+        - id: erp-product
+          uri: http://localhost:8082
+          predicates:
+            - Path=/api/v1/pim/**
+        - id: erp-store
+          uri: http://localhost:8083
+          predicates:
+            - Path=/api/v1/store/**
+      globalcors:
+        add-to-simple-url-handler-mapping: true
+        cors-configurations:
+          '[/**]':
+            allowedOrigins:
+              - "http://localhost:3001"
+              - "http://127.0.0.1:3001"
+            allowedMethods: "*"
+            allowedHeaders: "*"
+            exposedHeaders: "*"
+
+# Nacos 配置（可选，本地开发可注释）
+# spring:
+#   cloud:
+#     nacos:
+#       discovery:
+#         server-addr: 127.0.0.1:8848
