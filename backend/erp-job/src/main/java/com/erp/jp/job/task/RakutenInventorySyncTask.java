@@ -1,6 +1,7 @@
 package com.erp.jp.job.task;
 
 import com.erp.jp.inventory.service.InventoryService;
+import com.erp.jp.job.service.JobLogService;
 import com.erp.jp.platform.api.PlatformAdapter;
 import com.erp.jp.platform.api.PlatformCode;
 import com.erp.jp.platform.api.PlatformRegistry;
@@ -26,6 +27,7 @@ public class RakutenInventorySyncTask {
 
     private final PlatformRegistry platformRegistry;
     private final InventoryService inventoryService;
+    private final JobLogService jobLogService;
 
     /**
      * 每 30 分钟同步一次库存到乐天
@@ -35,12 +37,14 @@ public class RakutenInventorySyncTask {
     @Scheduled(fixedRateString = "${erp.job.inventory-sync.rate:1800000}")
     public void syncInventory() {
         log.info("====== 开始执行乐天库存同步任务 ======");
+        Long logId = jobLogService.createLog("乐天库存同步", "INVENTORY_SYNC");
 
         try {
             // 获取乐天平台适配器
             PlatformAdapter adapter = platformRegistry.getAdapter(PlatformCode.RAKUTEN);
             if (adapter == null) {
                 log.warn("乐天平台适配器未找到，跳过同步");
+                jobLogService.updateLogFailed(logId, "乐天平台适配器未找到");
                 return;
             }
 
@@ -61,12 +65,15 @@ public class RakutenInventorySyncTask {
             if (result.isSuccess()) {
                 log.info("====== 乐天库存同步完成：成功{}单，失败{}单 ======",
                         result.getSuccessCount(), result.getFailCount());
+                jobLogService.updateLogSuccess(logId, requests.size(), result.getSuccessCount(), result.getFailCount());
             } else {
                 log.error("乐天库存同步失败：{}", result.getMessage());
+                jobLogService.updateLogFailed(logId, result.getMessage());
             }
 
         } catch (Exception e) {
             log.error("乐天库存同步任务执行失败", e);
+            jobLogService.updateLogFailed(logId, e.getMessage());
         }
     }
 }

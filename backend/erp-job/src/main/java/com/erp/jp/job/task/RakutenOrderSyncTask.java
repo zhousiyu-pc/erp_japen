@@ -8,6 +8,7 @@ import com.erp.jp.platform.api.order.OrderQuery;
 import com.erp.jp.platform.api.order.PlatformOrder;
 import com.erp.jp.order.entity.OrderItem;
 import com.erp.jp.order.entity.OrderMaster;
+import com.erp.jp.job.service.JobLogService;
 import com.erp.jp.order.service.OrderService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -31,6 +32,7 @@ public class RakutenOrderSyncTask {
 
     private final PlatformRegistry platformRegistry;
     private final OrderService orderService;
+    private final JobLogService jobLogService;
 
     /**
      * 每 15 分钟同步一次乐天订单
@@ -40,12 +42,14 @@ public class RakutenOrderSyncTask {
     @Scheduled(fixedRateString = "${erp.job.order-sync.rate:900000}")
     public void syncOrders() {
         log.info("====== 开始执行乐天订单同步任务 ======");
+        Long logId = jobLogService.createLog("乐天订单同步", "ORDER_SYNC");
 
         try {
             // 获取乐天平台适配器（自动切换模拟/真实模式）
             PlatformAdapter adapter = platformRegistry.getAdapter(PlatformCode.RAKUTEN);
             if (adapter == null) {
                 log.warn("乐天平台适配器未找到，跳过同步");
+                jobLogService.updateLogFailed(logId, "乐天平台适配器未找到");
                 return;
             }
 
@@ -68,11 +72,13 @@ public class RakutenOrderSyncTask {
 
             if (orders == null || orders.isEmpty()) {
                 log.info("未同步到新订单");
+                jobLogService.updateLogSuccess(logId, 0, 0, 0);
                 return;
             }
 
             // 导入订单到系统
             int successCount = 0;
+            int failCount = 0;
             for (PlatformOrder platformOrder : orders) {
                 try {
                     OrderMaster order = toOrderMaster(platformOrder, shopId);
@@ -82,13 +88,16 @@ public class RakutenOrderSyncTask {
                     successCount++;
                 } catch (Exception e) {
                     log.error("订单导入失败：platformOrderId={}", platformOrder.getPlatformOrderId(), e);
+                    failCount++;
                 }
             }
 
-            log.info("====== 乐天订单同步完成：共{}单，成功{}单 ======", orders.size(), successCount);
+            log.info("====== 乐天订单同步完成：共{}单，成功{}单，失败{}单 ======", orders.size(), successCount, failCount);
+            jobLogService.updateLogSuccess(logId, orders.size(), successCount, failCount);
 
         } catch (Exception e) {
             log.error("乐天订单同步任务执行失败", e);
+            jobLogService.updateLogFailed(logId, e.getMessage());
         }
     }
 
