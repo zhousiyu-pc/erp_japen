@@ -3,9 +3,13 @@ package com.erp.jp.order.controller;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.erp.jp.common.result.R;
 import com.erp.jp.order.dto.OrderDTO;
+import com.erp.jp.order.service.OrderExportService;
 import com.erp.jp.order.service.OrderService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.format.annotation.DateTimeFormat;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDateTime;
@@ -20,6 +24,7 @@ import java.time.LocalDateTime;
 public class OrderController {
 
     private final OrderService orderService;
+    private final OrderExportService orderExportService;
 
     /**
      * 订单列表（分页）
@@ -60,5 +65,30 @@ public class OrderController {
     public R<Integer> importRakutenOrders(@RequestParam Long shopId,
                                            @RequestParam(defaultValue = "10") int count) {
         return orderService.importRakutenOrders(shopId, count);
+    }
+
+    /**
+     * 导出订单为 Excel
+     */
+    @GetMapping("/orders/export")
+    public ResponseEntity<byte[]> exportOrders(
+            @RequestParam(required = false) Long tenantId,
+            @RequestParam(required = false) Long shopId,
+            @RequestParam(required = false) String platformCode,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime startTime,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime endTime) {
+        try {
+            byte[] excelData = orderExportService.exportToExcel(tenantId, shopId, platformCode, startTime, endTime);
+
+            String fileName = "订单导出_" + LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyyMMdd_HHmmss")) + ".xlsx";
+
+            return ResponseEntity.ok()
+                    .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=\"" + fileName + "\"")
+                    .contentType(MediaType.APPLICATION_OCTET_STREAM)
+                    .body(excelData);
+        } catch (Exception e) {
+            log.error("订单导出失败", e);
+            return ResponseEntity.internalServerError().build();
+        }
     }
 }
