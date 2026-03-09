@@ -1,4 +1,4 @@
-package com.erp.jp.supplier.entity;
+package com.erp.jp.store.entity;
 
 import com.baomidou.mybatisplus.annotation.IdType;
 import com.baomidou.mybatisplus.annotation.TableId;
