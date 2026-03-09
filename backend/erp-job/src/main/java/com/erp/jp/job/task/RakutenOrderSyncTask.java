@@ -13,6 +13,8 @@ import com.erp.jp.order.service.OrderService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
+import org.springframework.retry.annotation.Backoff;
+import org.springframework.retry.annotation.Retryable;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
@@ -40,6 +42,7 @@ public class RakutenOrderSyncTask {
      * 真实模式：调用乐天 API
      */
     @Scheduled(fixedRateString = "${erp.job.order-sync.rate:900000}")
+    @Retryable(maxAttempts = 3, backoff = @Backoff(delay = 5000))
     public void syncOrders() {
         log.info("====== 开始执行乐天订单同步任务 ======");
         Long logId = jobLogService.createLog("乐天订单同步", "ORDER_SYNC");
