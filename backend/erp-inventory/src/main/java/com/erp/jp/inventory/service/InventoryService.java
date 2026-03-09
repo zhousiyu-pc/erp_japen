@@ -5,8 +5,10 @@ import com.erp.jp.common.result.R;
 import com.erp.jp.inventory.dto.InventoryDTO;
 import com.erp.jp.inventory.entity.Inventory;
 import com.erp.jp.inventory.entity.InventoryTransaction;
+import com.erp.jp.inventory.entity.InventoryWarning;
 import com.erp.jp.inventory.mapper.InventoryMapper;
 import com.erp.jp.inventory.mapper.InventoryTransactionMapper;
+import com.erp.jp.inventory.mapper.InventoryWarningMapper;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -27,6 +29,7 @@ public class InventoryService {
 
     private final InventoryMapper inventoryMapper;
     private final InventoryTransactionMapper transactionMapper;
+    private final InventoryWarningMapper warningMapper;
 
     /**
      * 查询库存（四态）
@@ -278,5 +281,36 @@ public class InventoryService {
         dto.setQtyIntransit(inventory.getQtyIntransit());
         dto.setExpiryDate(inventory.getExpiryDate());
         return dto;
+    }
+
+    /**
+     * 检查库存预警
+     * [by Agent]
+     */
+    public void checkInventoryWarning(Long tenantId, Long warehouseId, Long skuId, Integer availableQty) {
+        // 库存不足预警（阈值：10）
+        if (availableQty != null && availableQty < 10) {
+            createWarning(tenantId, warehouseId, skuId, 1, availableQty, 10, 3);
+        }
+        // 库存积压预警（阈值：1000）
+        if (availableQty != null && availableQty > 1000) {
+            createWarning(tenantId, warehouseId, skuId, 2, availableQty, 1000, 2);
+        }
+    }
+
+    private void createWarning(Long tenantId, Long warehouseId, Long skuId,
+                               Integer warningType, Integer currentQty, Integer thresholdQty, Integer warningLevel) {
+        InventoryWarning warning = new InventoryWarning();
+        warning.setTenantId(tenantId);
+        warning.setWarehouseId(warehouseId);
+        warning.setSkuId(skuId);
+        warning.setWarningType(warningType);
+        warning.setCurrentQty(currentQty);
+        warning.setThresholdQty(thresholdQty);
+        warning.setWarningLevel(warningLevel);
+        warning.setIsHandled(0);
+        warning.setCreateTime(LocalDateTime.now());
+        warningMapper.insert(warning);
+        log.info("库存预警创建：warehouseId={}, skuId={}, type={}, qty={}", warehouseId, skuId, warningType, currentQty);
     }
 }
